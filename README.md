@@ -2,6 +2,7 @@
 [![GitHub](https://img.shields.io/github/stars/pyjoyment/Pyjo-Reactor-Twisted?style=flat&label=GitHub%20%E2%AD%90&logo=github)](https://github.com/pyjoyment/Pyjo-Reactor-Twisted)
 [![Documentation](https://img.shields.io/badge/docs-Read_the_Docs-blue?logo=readthedocs&logoColor=white)](https://pyjoyment.readthedocs.io/projects/pyjo-reactor-twisted/en/stable/)
 [![License](https://img.shields.io/github/license/pyjoyment/Pyjo-Reactor-Twisted.svg)](https://github.com/pyjoyment/Pyjo-Reactor-Twisted/blob/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/Pyjo-Reactor-Twisted?logo=pypi&logoColor=white)](https://pypi.org/project/Pyjo-Reactor-Twisted/)
 [![Tests](https://github.com/pyjoyment/Pyjo-Reactor-Twisted/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/pyjoyment/Pyjo-Reactor-Twisted/actions/workflows/tests.yaml)
 
 # Pyjo-Reactor-Twisted
