@@ -1,7 +1,5 @@
 # Sphinx configuration: https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import Pyjo.Reactor.Twisted
-
 import functools
 import importlib.util
 import inspect
@@ -22,13 +20,18 @@ with open(os.path.join(ROOT, 'pyproject.toml'), 'rb') as f:
 project = PROJECT['name']
 author = ', '.join(a['name'] for a in PROJECT['authors'])
 copyright = f'2026, {author}'
-version = release = Pyjo.Reactor.Twisted.__version__
+version = release = PROJECT['version']
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.linkcode']
 
+# The documentation of Pyjoyment of the same version of Read the Docs as this one, stable for stable, and latest for
+# the others, as a tag or a pull request of this project is no version of Pyjoyment
+CHANNEL = 'stable' if os.environ.get('READTHEDOCS_VERSION') == 'stable' else 'latest'
+PYJOYMENT = f'https://pyjoyment.readthedocs.io/en/{CHANNEL}/'
+
 # The modules of Pyjoyment, as Pyjo.Reactor.Poll, are links to its documentation
 intersphinx_mapping = {
-    'pyjoyment': ('https://pyjoyment.readthedocs.io/en/latest/', None),
+    'pyjoyment': (PYJOYMENT, None),
 }
 
 # The commit that the links to the source point to: the one that Read the Docs builds, or the one of the checkout
@@ -38,7 +41,7 @@ COMMIT = (
     or 'main'
 )
 
-SOURCE = f'https://github.com/dex4er/Pyjo-Reactor-Twisted/blob/{COMMIT}'
+SOURCE = f'https://github.com/pyjoyment/Pyjo-Reactor-Twisted/blob/{COMMIT}'
 
 
 # The link [source] of a class, a function or a method goes to the lines of its source on GitHub; an object of
@@ -99,13 +102,13 @@ exclude_patterns = ['_build']
 
 html_theme = 'alabaster'
 html_theme_options = {
-    'github_user': 'dex4er',
+    'github_user': 'pyjoyment',
     'github_repo': 'Pyjo-Reactor-Twisted',
     'show_powered_by': False,
     # The way back to the documentation of Pyjoyment, whose project this one is a subproject of on Read the Docs
     'extra_nav_links': {
-        'Pyjoyment': 'https://pyjoyment.readthedocs.io/en/latest/',
-        'Distributions': 'https://pyjoyment.readthedocs.io/en/latest/distributions.html',
+        'Pyjoyment': PYJOYMENT,
+        'Distributions': f'{PYJOYMENT}distributions.html',
     },
     # The sans-serif font of the system, where Alabaster has Georgia, as in Pyjoyment
     'font_family': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",

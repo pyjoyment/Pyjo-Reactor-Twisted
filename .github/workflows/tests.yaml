@@ -7,27 +7,52 @@ on:
   pull_request:
     branches:
       - "*"
-  schedule:
-    # Daily, as Pyjoyment, whose tests this reactor has to pass, changes more
-    # often than the reactor.
-    - cron: 37 5 * * *
   workflow_dispatch:
     inputs:
       pyjoyment-ref:
-        description: The branch, tag or commit of Pyjoyment to test against
+        description: The branch, tag or commit of Pyjoyment to test against, or the release of uv.lock
         required: false
-        default: main
 
 permissions:
   contents: read
 
 jobs:
+  # The Pyjoyment to test against: the release of uv.lock, with which the
+  # reactor is installed, and its tag, whose suite the job prove runs on the
+  # reactor; or the ref of a dispatch, whose checkout is laid over the release
+  # with `--with-editable`, so that the checkout is what is tested.
+  pyjoyment:
+    name: pyjoyment
+
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 5
+
+    outputs:
+      ref: ${{ steps.resolve.outputs.ref }}
+      editable: ${{ steps.resolve.outputs.editable }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Resolve the ref of Pyjoyment
+        id: resolve
+        shell: bash
+        env:
+          REF: ${{ inputs.pyjoyment-ref }}
+        run: |-
+          if [ -n "$REF" ]; then
+            echo "ref=$REF" >> "$GITHUB_OUTPUT"
+            echo "editable=../Pyjoyment" >> "$GITHUB_OUTPUT"
+          else
+            python3 -c 'import tomllib; print("ref=" + next(p["version"] for p in tomllib.load(open("uv.lock", "rb"))["package"] if p["name"] == "pyjoyment"))' >> "$GITHUB_OUTPUT"
+          fi
+
   # The whole suite of Pyjoyment on this reactor, as a reactor has to pass all
-  # of it, and the test of the reactor itself. Pyjoyment is checked out next to
-  # this repository, and laid over the one of Git of `tool.uv.sources` of
-  # pyproject.toml with `--with-editable`, so that the checkout is what is tested.
+  # of it, and the test of the reactor itself.
   prove:
     name: prove (python ${{ matrix.python }})
+    needs: pyjoyment
 
     strategy:
       fail-fast: false
@@ -52,8 +77,8 @@ jobs:
       - name: Checkout Pyjoyment
         uses: actions/checkout@v7
         with:
-          repository: dex4er/Pyjoyment
-          ref: ${{ inputs.pyjoyment-ref || 'main' }}
+          repository: pyjoyment/Pyjoyment
+          ref: ${{ needs.pyjoyment.outputs.ref }}
           path: Pyjoyment
 
       - name: Set up Python
@@ -80,9 +105,10 @@ jobs:
         env:
           PYTHONDEVMODE: "1"
           PYTHONWARNINGS: error::SyntaxWarning,error::DeprecationWarning
+          PYJOYMENT: ${{ needs.pyjoyment.outputs.editable }}
         run: |
           mkdir -p "$GITHUB_WORKSPACE/junit"
-          uv run --with-editable ../Pyjoyment python -m Pyjo.Prove -l --color --timeout 60 --capture-stderr --formatter "junit=$GITHUB_WORKSPACE/junit/pyjo-reactor-twisted.xml" --formatter "markdown=$GITHUB_STEP_SUMMARY" -r t 2>&1 | tee prove.log
+          uv run ${PYJOYMENT:+--with-editable "$PYJOYMENT"} python -m Pyjo.Prove -l --color --timeout 60 --capture-stderr --formatter "junit=$GITHUB_WORKSPACE/junit/pyjo-reactor-twisted.xml" --formatter "markdown=$GITHUB_STEP_SUMMARY" -r t 2>&1 | tee prove.log
           if grep -n 'ResourceWarning:' prove.log; then exit 1; fi
 
       - name: Run the tests of Pyjoyment on the reactor
@@ -125,8 +151,8 @@ jobs:
   # The summary of the summaries of the jobs of the tests, from the JUnit XML
   # that they upload, as the summary of this job and as a comment of the pull
   # request, which each run edits, as in Pyjoyment, with the script of its
-  # checkout, which needs Pyjo.DOM. A pull request of a fork has a token that
-  # cannot comment.
+  # checkout of main, which needs Pyjo.DOM. A pull request of a fork has a
+  # token that cannot comment.
   report:
     name: report
     needs:
@@ -143,8 +169,8 @@ jobs:
       - name: Checkout Pyjoyment
         uses: actions/checkout@v7
         with:
-          repository: dex4er/Pyjoyment
-          ref: ${{ inputs.pyjoyment-ref || 'main' }}
+          repository: pyjoyment/Pyjoyment
+          ref: main
           path: Pyjoyment
 
       - name: Set up Python
@@ -186,3 +212,26 @@ jobs:
           else
             gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@report.md > /dev/null
           fi
+
+  # The one check that the ruleset of main requires, whatever the matrix has,
+  # as in Pyjoyment: it fails when a job failed or was cancelled, so a new
+  # version of Python needs no change of the ruleset.
+  tests:
+    name: Tests
+    needs:
+      - pyjoyment
+      - prove
+    if: always()
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 5
+
+    steps:
+      - name: Check the results of the jobs
+        shell: bash
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |-
+          echo "$RESULTS"
+          for result in $RESULTS; do
+            test "$result" = success
+          done
