@@ -133,7 +133,7 @@ mise exec -- uv run --group docs --with-editable ../Pyjoyment sphinx-build -W --
 ```
 
 `t/Reactor_Twisted.py` is the port of `t/mojo/reactor_ev.t` of Mojolicious
-9.49, from `t/Pyjo/Reactor_Poll.py` of Pyjoyment, with the differences of
+9.53, from `t/Pyjo/Reactor_Poll.py` of Pyjoyment, with the differences of
 `reactor_ev.t`.
 `t/docs/Reactor_Twisted.py` runs the synopsis of the module, in both forms, as
 `t/docs` of Pyjoyment does.

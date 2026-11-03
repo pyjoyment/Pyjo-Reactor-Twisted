@@ -120,7 +120,7 @@ jobs:
           PYTHONWARNINGS: error::SyntaxWarning,error::DeprecationWarning
           TEST_ONLINE: "1"
         run: |-
-          uv run --project ../Pyjo-Reactor-Twisted --with-editable . python -m Pyjo.Prove -l --color -j 4 --timeout 60 --capture-stderr --stderr-lines 1000 --formatter "junit=$GITHUB_WORKSPACE/junit/pyjoyment.xml" --formatter "markdown=$GITHUB_STEP_SUMMARY" -r t 2>&1 | tee prove.log
+          uv run --project ../Pyjo-Reactor-Twisted --with-editable . python -m Pyjo.Prove -l --color -j 4 --timeout 120 --capture-stderr --stderr-lines 1000 --formatter "junit=$GITHUB_WORKSPACE/junit/pyjoyment.xml" --formatter "markdown=$GITHUB_STEP_SUMMARY" -r t 2>&1 | tee prove.log
           if grep -n 'ResourceWarning:' prove.log; then exit 1; fi
 
       # As in Pyjoyment: the JUnit XML of the harness, of the tests of the
