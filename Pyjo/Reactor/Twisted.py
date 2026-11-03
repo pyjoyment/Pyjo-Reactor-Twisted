@@ -73,7 +73,7 @@ Events
 See also
 --------
 
-:mod:`Pyjo.Reactor.Poll`, :mod:`Pyjoyment`, https://github.com/dex4er/Pyjoyment.
+:mod:`Pyjo.Reactor.Poll`, :mod:`Pyjoyment`, https://github.com/pyjoyment/Pyjoyment.
 
 Classes
 -------
@@ -85,6 +85,7 @@ import Pyjo.Reactor.Poll
 
 from Pyjo.Reactor import Handle, IOCallback, TimerCallback
 
+import importlib.metadata
 import os
 import select
 import sys
@@ -100,7 +101,8 @@ from twisted.internet.interfaces import IReadDescriptor, IWriteDescriptor
 from zope.interface import implementer  # pyright: ignore[reportMissingTypeStubs]
 
 
-__version__ = '0.1.0'
+__version__ = importlib.metadata.version('Pyjo-Reactor-Twisted')
+"""The version of the distribution, of its metadata, which the workflow Automated version sets in pyproject.toml."""
 
 # The object that uses the reactor of Twisted, which is unique, as Mojo::Reactor::EV counts the objects of EV
 _active: 'weakref.ref[Pyjo_Reactor_Twisted] | None' = None
