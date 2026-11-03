@@ -2,7 +2,7 @@
 # To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
 cli:
-  version: 1.25.0
+  version: 1.29.0
 # Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
 plugins:
   sources:
@@ -88,7 +88,7 @@ lint:
     - git-diff-check
     - pyright@1.1.414
     # The format command of ruff is disabled in the plugin by default
-    - ruff@0.17.1:
+    - ruff@0.17.3:
         commands:
           - lint
           - format
