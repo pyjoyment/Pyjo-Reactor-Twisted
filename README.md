@@ -23,11 +23,24 @@ share one event loop.
 
 ## Installation
 
-From the Git repository, as the reactor is not on PyPI yet; Pyjoyment comes
-from [PyPI](https://pypi.org/project/Pyjoyment/):
+From [PyPI](https://pypi.org/project/Pyjo-Reactor-Twisted/), with
+[Pyjoyment](https://pypi.org/project/Pyjoyment/) and
+[Twisted](https://pypi.org/project/Twisted/), which it depends on:
 
 ```sh
-uv add git+https://github.com/pyjoyment/Pyjo-Reactor-Twisted
+pip install Pyjo-Reactor-Twisted
+```
+
+or, in a project managed with [uv](https://docs.astral.sh/uv/):
+
+```sh
+uv add Pyjo-Reactor-Twisted
+```
+
+The development version is installed from the Git repository:
+
+```sh
+pip install git+https://github.com/pyjoyment/Pyjo-Reactor-Twisted
 ```
 
 ## Usage
