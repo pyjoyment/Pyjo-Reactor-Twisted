@@ -18,10 +18,11 @@ permissions:
 
 jobs:
   # The Pyjoyment to test against: the release of uv.lock, with which the
-  # reactor is installed, and its tag, or the commit of a source of Git, whose
-  # suite the job prove runs on the reactor; or the ref of a dispatch, whose
-  # checkout is laid over the release
-  # with `--with-editable`, so that the checkout is what is tested.
+  # reactor is installed, and its tag, or the commit of a source of Git,
+  # whose suite the job prove runs on the reactor; or the ref of a
+  # dispatch, a branch, a tag or a commit, whose Pyjoyment of Git is
+  # installed over the release with `--with`, not editable, as an
+  # installation from Git gets it, and whose checkout gives the suite.
   pyjoyment:
     name: pyjoyment
 
@@ -30,7 +31,7 @@ jobs:
 
     outputs:
       ref: ${{ steps.resolve.outputs.ref }}
-      editable: ${{ steps.resolve.outputs.editable }}
+      with: ${{ steps.resolve.outputs.with }}
 
     steps:
       - name: Checkout
@@ -44,7 +45,7 @@ jobs:
         run: |-
           if [ -n "$REF" ]; then
             echo "ref=$REF" >> "$GITHUB_OUTPUT"
-            echo "editable=../Pyjoyment" >> "$GITHUB_OUTPUT"
+            echo "with=pyjoyment @ git+https://github.com/pyjoyment/Pyjoyment@$REF" >> "$GITHUB_OUTPUT"
           else
             python3 -c 'import tomllib; p = next(p for p in tomllib.load(open("uv.lock", "rb"))["package"] if p["name"] == "pyjoyment"); git = p["source"].get("git"); print("ref=" + (git.rpartition("#")[2] if git else p["version"]))' >> "$GITHUB_OUTPUT"
           fi
@@ -106,10 +107,10 @@ jobs:
         env:
           PYTHONDEVMODE: "1"
           PYTHONWARNINGS: error::SyntaxWarning,error::DeprecationWarning
-          PYJOYMENT: ${{ needs.pyjoyment.outputs.editable }}
+          PYJOYMENT: ${{ needs.pyjoyment.outputs.with }}
         run: |
           mkdir -p "$GITHUB_WORKSPACE/junit"
-          uv run ${PYJOYMENT:+--with-editable "$PYJOYMENT"} python -m Pyjo.Prove -l --color --timeout 60 --capture-stderr --formatter "junit=$GITHUB_WORKSPACE/junit/pyjo-reactor-twisted.xml" --formatter "markdown=$GITHUB_STEP_SUMMARY" -r t 2>&1 | tee prove.log
+          uv run ${PYJOYMENT:+--with "$PYJOYMENT"} python -m Pyjo.Prove -l --color --timeout 60 --capture-stderr --formatter "junit=$GITHUB_WORKSPACE/junit/pyjo-reactor-twisted.xml" --formatter "markdown=$GITHUB_STEP_SUMMARY" -r t 2>&1 | tee prove.log
           if grep -n 'ResourceWarning:' prove.log; then exit 1; fi
 
       - name: Run the tests of Pyjoyment on the reactor
