@@ -124,6 +124,9 @@ class Pyjo_Reactor_Twisted(Pyjo.Reactor.Poll.object):
 
     _timers: dict[str, _Timer]  # pyright: ignore[reportIncompatibleVariableOverride]
 
+    # Twisted, whose twisted.internet runs the descriptors and the timers
+    event_loop_modules = ('twisted',)
+
     # We have to fall back to Pyjo.Reactor.Poll, since the reactor of Twisted is unique; in the constructor of the class,
     # as new and the constructor make the same object, and Python does not call __init__ for an object of another class
     def __new__(cls, *args: Any, **kwargs: Any) -> Any:

@@ -33,6 +33,11 @@ docs = ["sphinx>=9.2.0"]
 [tool.uv.dependency-groups]
 docs = { requires-python = ">=3.14" }
 
+# event_loop_modules of Pyjo.Reactor, pyjoyment/Pyjoyment#534, until the release after 0.2.0; ignored by the metadata of
+# the distribution, which keeps the release of PyPI
+[tool.uv.sources]
+Pyjoyment = { git = "https://github.com/pyjoyment/Pyjoyment", branch = "main" }
+
 # Only the module: the packages Pyjo and Pyjo.Reactor are those of Pyjoyment, whose namespace extend_path keeps open
 [tool.hatch.build.targets.wheel]
 only-include = ["Pyjo/Reactor/Twisted.py"]
