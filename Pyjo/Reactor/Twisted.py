@@ -61,9 +61,13 @@ class uses it at a time, and :meth:`~Pyjo_Reactor_Twisted.new` returns a
 class does. It runs in the thread that
 made it, so the threads of :mod:`Pyjo.Server.Prethread` get
 :mod:`Pyjo.Reactor.Poll` objects. When the reactor of Twisted is running
-already, as under ``twistd`` or Scrapy, :meth:`~Pyjo_Reactor_Twisted.start`
-and :meth:`~Pyjo_Reactor_Twisted.one_tick` return right away, and the events
-are handled by the reactor of Twisted that runs.
+already, as under ``twistd`` or Scrapy,
+:attr:`~Pyjo_Reactor_Twisted.is_running` is true,
+:meth:`~Pyjo_Reactor_Twisted.start` and :meth:`~Pyjo_Reactor_Twisted.one_tick`
+return right away, and the events are handled by the reactor of Twisted that
+runs. :meth:`Pyjo.Promise.Pyjo_Promise.wait` returns right away there, and
+:meth:`Pyjo.IOLoop.Pyjo_IOLoop.start` raises ``Pyjo.IOLoop already running``,
+as in a loop of asyncio that runs with :mod:`Pyjo.Reactor.Asyncio`.
 
 Events
 ------
@@ -191,6 +195,20 @@ class Pyjo_Reactor_Twisted(Pyjo.Reactor.Poll.object):
         self._io[fd] = {'cb': cb, 'mode': 0}
         self._descriptors[fd] = _Descriptor(weakref.ref(self), fd)
         return self.watch(handle, True, True)
+
+    @property
+    def is_running(self) -> bool:
+        """::
+
+            boolean = reactor.is_running
+
+        Check if reactor is running, also while the reactor of Twisted runs,
+        started by something else, which watches its handles and timers.
+        """
+        # Unlike Mojolicious: the reactor of Twisted that runs, as of reactor.run(), runs the events of this one too, as
+        # it cannot run a second time, where Mojo would run a reactor inside another; the run that the reactor makes
+        # itself, with doIteration, is not one of Twisted, so it stops after stop or reset in one of its callbacks
+        return bool(self._running) or bool(self._twisted.running)
 
     def one_tick(self) -> None:
         """::
