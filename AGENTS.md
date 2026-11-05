@@ -22,8 +22,13 @@ dependencies of another. The conventions are those of Pyjoyment: read its
 - `reactor.run()` of Twisted cannot run a second time, so `one_tick` runs
   `runUntilCurrent()` and one `doIteration()` of Twisted, and `start` repeats
   `one_tick`, as `Pyjo.Reactor.Poll` does. While the reactor of Twisted runs,
-  started by something else, both return right away, as
-  `Pyjo.Reactor.Asyncio` does in a running loop of asyncio.
+  started by something else, both return right away and `is_running` is true,
+  as `Pyjo.Reactor.Asyncio` has it in a running loop of asyncio: the
+  `running` of Twisted, which `reactor.run()` sets and the run of
+  `doIteration` does not. Without it, `Pyjo.Promise.wait` would repeat a
+  `start` that returns right away, and spin, where it returns at once in a
+  loop that runs, and `Pyjo.IOLoop.start()` raises `Pyjo.IOLoop already
+  running` there.
 - Unless the application installed a reactor of Twisted, it installs the one of
   poll, or of select on macOS and where there is no poll, not epoll, the
   default of Twisted on Linux: epoll keeps its state in the kernel, which drops

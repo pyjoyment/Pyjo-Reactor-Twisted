@@ -15,6 +15,8 @@ from Pyjo.Test import *  # noqa: E402
 import gc  # noqa: E402
 import signal  # noqa: E402
 import socket  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
 import time  # noqa: E402
 
 
@@ -449,5 +451,51 @@ with subtest('next_tick from a signal handler'):
     is_ok(err, None, 'no error')
     ok(ticks, 'callbacks of the signal handler')
     reactor.reset()
+
+# Not in Mojolicious: the reactor of Twisted that something else runs, as reactor.run(), where Pyjo.Promise.wait would
+# start the reactor again and again, which returns right away; in a process of its own with a timeout, as it would never
+# return, and as the reactor of Twisted cannot run a second time
+with subtest('wait and for of Pyjo.Iterator inside reactor.run()'):
+    code = """
+import os
+os.environ['PYJO_REACTOR'] = 'Pyjo.Reactor.Twisted'
+import Pyjo.Reactor.Twisted
+Pyjo.Reactor.Twisted.install()
+import Pyjo.IOLoop, Pyjo.Iterator, Pyjo.Promise
+from twisted.internet import reactor
+
+got = []
+
+def main():
+    got.append(Pyjo.IOLoop.is_running())
+    promise = Pyjo.Promise.timer(0.01, 'timer')
+    promise.wait()
+    got.append('wait returned')
+    try:
+        list(Pyjo.Iterator.new([1]).map(lambda e: Pyjo.Promise.timer(0.01, e)))
+    except RuntimeError as e:
+        got.append(str(e))
+    try:
+        Pyjo.IOLoop.start()
+    except Exception as e:
+        got.append(str(e).split(' at ')[0])
+    promise.then(lambda value: got.append(value)).finally_(lambda *args: reactor.stop())
+
+reactor.callWhenRunning(main)
+reactor.run()
+got.append(Pyjo.IOLoop.is_running())
+print(got)
+"""
+    try:
+        result = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True, timeout=60)
+        output = result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        output = 'timeout'
+    is_ok(
+        output,
+        "[True, 'wait returned', 'A promise cannot be waited for in a running event loop, await it instead', "
+        "'Pyjo.IOLoop already running', 'timer', False]\n",
+        'the reactor of Twisted runs, wait returns at once, for and start fail',
+    )
 
 done_testing()

@@ -53,8 +53,10 @@ PYJO_REACTOR=Pyjo.Reactor.Twisted python myapp.py daemon
 
 The reactor of Twisted is unique in a process, so only one `Pyjo.IOLoop` uses
 it at a time; the others get `Pyjo.Reactor.Poll`. When the reactor of Twisted
-is running already, as under `twistd` or Scrapy, `Pyjo.IOLoop.start()` returns
-right away and the events are handled by the reactor that runs.
+is running already, as under `twistd` or Scrapy, the events are handled by the
+reactor that runs: `Pyjo.IOLoop.is_running()` is true, `Pyjo.IOLoop.start()`
+raises `Pyjo.IOLoop already running`, and `wait()` of a promise returns right
+away, so a callback takes its value with `then`.
 
 ## Examples
 
