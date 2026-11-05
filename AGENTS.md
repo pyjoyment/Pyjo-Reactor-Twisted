@@ -76,9 +76,10 @@ PYJO_REACTOR=Pyjo.Reactor.Twisted mise exec -- uv run --project ../Pyjo-Reactor-
 The workflow Tests runs the tests of the reactor against the release of
 `uv.lock`, without `--with-editable`, so that a pull request tests what an
 installation gets, and the suite of Pyjoyment of the tag of that release on
-the reactor. A dispatch with `pyjoyment-ref` lays a checkout of the ref over
-it, as in development, so that what the next release of Pyjoyment breaks is
-known before the release. It ends with the job `Tests`, the one check of it
+the reactor, or of the commit of `uv.lock` while `[tool.uv.sources]` takes
+Pyjoyment from Git, whose development version has no tag. A dispatch with
+`pyjoyment-ref` lays a checkout of the ref over it, as in development, so that
+what the next release of Pyjoyment breaks is known before the release. It ends with the job `Tests`, the one check of it
 that the ruleset of `main` requires, as in Pyjoyment: it fails when a job of
 the matrix failed or was cancelled, so a new version of Python needs no change
 of the ruleset.
