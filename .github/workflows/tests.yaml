@@ -100,12 +100,17 @@ jobs:
 
       # As in Pyjoyment: invalid escape sequences and deprecated APIs fail, and
       # the ResourceWarning of the development mode of Python, which only goes
-      # to the standard error, is checked in the output.
+      # to the standard error, is checked in the output. Its debug mode of
+      # asyncio logs a callback that takes longer than 0.1 seconds, which the
+      # tests do on a busy runner, on the standard error that they check, so
+      # the loops of Pyjo.Reactor.Asyncio log only one of more than 5 seconds,
+      # with PYJO_ASYNCIO_SLOW_CALLBACK.
       - name: Run the tests of the reactor
         working-directory: Pyjo-Reactor-Twisted
         shell: bash
         env:
           PYTHONDEVMODE: "1"
+          PYJO_ASYNCIO_SLOW_CALLBACK: "5"
           PYTHONWARNINGS: error::SyntaxWarning,error::DeprecationWarning
           PYJOYMENT: ${{ needs.pyjoyment.outputs.with }}
         run: |
@@ -119,6 +124,7 @@ jobs:
         env:
           PYJO_REACTOR: Pyjo.Reactor.Twisted
           PYTHONDEVMODE: "1"
+          PYJO_ASYNCIO_SLOW_CALLBACK: "5"
           PYTHONWARNINGS: error::SyntaxWarning,error::DeprecationWarning
           TEST_ONLINE: "1"
         run: |-
